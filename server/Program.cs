@@ -17,7 +17,10 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:ConnectionString"];
+});
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 
@@ -36,6 +39,10 @@ app.UseCors();
 app.MapControllers();
 
 string location = string.Empty;
+
+/*
+TODO: Rate Limiting
+*/
 
 // Server health check
 app.MapGet("/", () => "WeatherAPI is running!");

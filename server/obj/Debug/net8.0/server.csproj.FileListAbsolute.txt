@@ -32,3 +32,12 @@
 /home/cnwangwu/projects/weather-api/server/obj/Debug/net8.0/server.pdb
 /home/cnwangwu/projects/weather-api/server/obj/Debug/net8.0/server.genruntimeconfig.cache
 /home/cnwangwu/projects/weather-api/server/obj/Debug/net8.0/ref/server.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Microsoft.Extensions.Caching.Abstractions.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Microsoft.Extensions.Caching.StackExchangeRedis.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Microsoft.Extensions.Options.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Microsoft.Extensions.Primitives.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/Pipelines.Sockets.Unofficial.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/StackExchange.Redis.dll
+/home/cnwangwu/projects/weather-api/server/bin/Debug/net8.0/System.Diagnostics.DiagnosticSource.dll
