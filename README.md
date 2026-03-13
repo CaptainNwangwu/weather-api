@@ -236,7 +236,7 @@ The multi-location endpoint returns `{ locations: { name: data } }` while the si
 
 ## What I Learned
 
-- **CORS is browser-enforced** — it is applied to *responses*, not requests. The server must include the correct headers on the response; a client-side flag cannot bypass it. A proxy sidesteps it by making the call server-to-server.
+- **CORS is browser-enforced** — it is applied to *responses*, not requests. The server must include the correct headers on the response; a client-side flag cannot bypass it. A proxy sidesteps it by making the call server-to-server. **This is how much production environments work (e.g NGINX/Caddy).**
 - **ASP.NET Core endpoint routing and CORS** — `AddDefaultPolicy` + `UseCors()` is not sufficient for controller endpoints in .NET 5+; you must also call `RequireCors()` or use `[EnableCors]`. The Vite proxy made this moot in dev.
 - **Rate limiting in ASP.NET Core** — `System.Threading.RateLimiting` (added in .NET 7) provides built-in fixed-window, sliding-window, token-bucket, and concurrency limiters. Policies are registered in DI via `AddRateLimiter`, applied globally with `UseRateLimiter`, and can be scoped per-endpoint or globally via `options.GlobalLimiter`.
 - **Vuetify 4 component registration** — components must be explicitly imported (`* as components from 'vuetify/components'`) and passed to `createVuetify()`, unlike Vuetify 2/3 which supported auto-registration via a separate plugin.
