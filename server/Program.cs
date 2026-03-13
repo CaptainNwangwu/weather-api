@@ -52,9 +52,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors();
 app.UseRateLimiter();
 app.UseHttpsRedirection();
-app.UseCors();
 app.MapControllers();
 
 string location = string.Empty;
