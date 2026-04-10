@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card v-for="(loc, i) in locations" :key="i"
+    <v-card v-for="(loc, i) in pagedLocations" :key="i"
       class="mx-auto mb-6" max-width="900" elevation="8" rounded="xl">
 
       <!-- Location Header -->
@@ -184,11 +184,18 @@
       </v-expand-transition>
 
     </v-card>
+  <div v-if="totalPages > 1" class="d-flex justify-center mt-2 mb-4">
+    <v-pagination
+      v-model="page"
+      :length="totalPages"
+      :total-visible="5"
+      rounded="circle"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
@@ -210,6 +217,16 @@ const locations = computed(() => {
   }
   return [props.rawData]
 })
+
+const PAGE_SIZE = 3
+const page = ref(1)
+const totalPages = computed(() => Math.ceil(locations.value.length / PAGE_SIZE))
+const pagedLocations = computed(() => {
+  const start = (page.value - 1) * PAGE_SIZE
+  return locations.value.slice(start, start + PAGE_SIZE)
+})
+
+watch(() => props.rawData, () => { page.value = 1 })
 
 // ── Icon mapping ──────────────────────────────────────────────
 

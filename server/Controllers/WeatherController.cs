@@ -115,11 +115,11 @@ namespace server.Controllers
             var response = await client.GetAsync(requestUrl);
 
             if (!response.IsSuccessStatusCode)
-                HandleExternalApiError(response);
+                return HandleExternalApiError(response);
 
             var content = await response.Content.ReadAsStringAsync();
 
-            // Store in cache for next time 
+            // Store in cache for next time
             _cache.Set(cachedUrl, content, _cacheOptions);
             return Content(content, "application/json");
         }
@@ -173,9 +173,10 @@ namespace server.Controllers
             var requestUrl = $"{_multiURL}?{string.Join("&", queryParams)}";
 
             // --- Caching --- //
-            // For security reasons, exclude storage of the ApiKey
+            // For security reasons, exclude storage of the ApiKey (@queryParams[0])
             var cachedPath = $"{_multiURL}/{encodedLocations}";
-            var cachedUrl = $"{cachedPath}?{string.Join("&", queryParams)}";
+            var cachedQueryParams = queryParams[1..];
+            var cachedUrl = $"{cachedPath}?{string.Join("&", cachedQueryParams)}";
 
             // Check cache before sending request to external API.
             var cached = _cache.Get<string>(cachedUrl);
@@ -190,7 +191,7 @@ namespace server.Controllers
             var response = await client.GetAsync(requestUrl);
 
             if (!response.IsSuccessStatusCode)
-                HandleExternalApiError(response);
+                return HandleExternalApiError(response);
 
             var content = await response.Content.ReadAsStringAsync();
 

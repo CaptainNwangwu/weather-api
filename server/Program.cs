@@ -58,12 +58,6 @@ app.UseRateLimiter();
 // app.UseHttpsRedirection();  // Azure handles HTTPS at the ingress level
 app.MapControllers();
 
-string location = string.Empty;
-
-/*
-TODO: Rate Limiting
-*/
-
 // Server health check
 app.MapGet("/", () => "WeatherAPI is running!");
 
