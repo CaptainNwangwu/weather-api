@@ -89,7 +89,7 @@
                   v-model="single.include"
                   :items="includeOptions"
                   label="Include Sections"
-                  hint="N/A — returns all sections by default"
+                  hint="Leave empty to return all sections"
                   prepend-inner-icon="mdi-filter-variant"
                   variant="outlined"
                   multiple
@@ -97,14 +97,14 @@
                   closable-chips
                   clearable
                   class="mb-3"
-                  placeholder="N/A"
+                  placeholder="All"
                 />
 
                 <v-select
                   v-model="single.elements"
                   :items="elementOptions"
                   label="Weather Elements"
-                  hint="N/A — returns all elements by default"
+                  hint="Leave empty for all elements; temp, conditions &amp; description always included"
                   prepend-inner-icon="mdi-thermometer"
                   variant="outlined"
                   multiple
@@ -112,7 +112,7 @@
                   closable-chips
                   clearable
                   class="mb-5"
-                  placeholder="N/A"
+                  placeholder="All"
                 />
 
                 <v-alert
@@ -186,7 +186,7 @@
                   v-model="multi.include"
                   :items="includeOptions"
                   label="Include Sections"
-                  hint="N/A — returns all sections by default"
+                  hint="Leave empty to return all sections"
                   prepend-inner-icon="mdi-filter-variant"
                   variant="outlined"
                   multiple
@@ -194,14 +194,14 @@
                   closable-chips
                   clearable
                   class="mb-3"
-                  placeholder="N/A"
+                  placeholder="All"
                 />
 
                 <v-select
                   v-model="multi.elements"
                   :items="elementOptions"
                   label="Weather Elements"
-                  hint="N/A — returns all elements by default"
+                  hint="Leave empty for all elements; temp, conditions &amp; description always included"
                   prepend-inner-icon="mdi-thermometer"
                   variant="outlined"
                   multiple
@@ -209,7 +209,7 @@
                   closable-chips
                   clearable
                   class="mb-5"
-                  placeholder="N/A"
+                  placeholder="All"
                 />
 
                 <v-alert
@@ -307,9 +307,6 @@ const includeOptions = [
 ]
 
 const elementOptions = [
-  { title: 'Max Temperature', value: 'tempmax' },
-  { title: 'Min Temperature', value: 'tempmin' },
-  { title: 'Temperature', value: 'temp' },
   { title: 'Feels Like', value: 'feelslike' },
   { title: 'Humidity', value: 'humidity' },
   { title: 'Precipitation', value: 'precip' },
@@ -324,8 +321,6 @@ const elementOptions = [
   { title: 'Solar Radiation', value: 'solarradiation' },
   { title: 'UV Index', value: 'uvindex' },
   { title: 'Snow Depth', value: 'snowdepth' },
-  { title: 'Conditions', value: 'conditions' },
-  { title: 'Description', value: 'description' },
   { title: 'Sunrise', value: 'sunrise' },
   { title: 'Sunset', value: 'sunset' },
 ]

@@ -29,7 +29,7 @@ builder.Services.AddRateLimiter(options =>
         PartitionedRateLimiter.Create<HttpContext, string>(_ =>
             RateLimitPartition.GetFixedWindowLimiter("global", _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 60,
+                PermitLimit = 120,
                 Window = TimeSpan.FromMinutes(1)
             })),
         // Per-IP cap for all endpoints
@@ -38,7 +38,7 @@ builder.Services.AddRateLimiter(options =>
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 10,
+                    PermitLimit = 30,
                     Window = TimeSpan.FromMinutes(1)
                 }))
     );
