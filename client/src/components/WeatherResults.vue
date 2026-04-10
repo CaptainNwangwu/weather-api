@@ -184,13 +184,14 @@
       </v-expand-transition>
 
     </v-card>
-  <div v-if="totalPages > 1" class="d-flex justify-center mt-2 mb-4">
-    <v-pagination
-      v-model="page"
-      :length="totalPages"
-      :total-visible="5"
-      rounded="circle"
-    />
+    <div v-if="totalPages > 1" class="d-flex justify-center mt-2 mb-4">
+      <v-pagination
+        v-model="page"
+        :length="totalPages"
+        :total-visible="5"
+        rounded="circle"
+      />
+    </div>
   </div>
 </template>
 
