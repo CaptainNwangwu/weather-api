@@ -8,11 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var allowedOrigins = new List<string> { "http://localhost:5239", "http://localhost:5173", "http://localhost:5174" };
+var frontendUrl = builder.Configuration["FRONTEND_URL"];
+if (!string.IsNullOrWhiteSpace(frontendUrl))
+    allowedOrigins.Add(frontendUrl);
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5239", "http://localhost:5173", "http://localhost:5174")
+        policy.WithOrigins(allowedOrigins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -33,10 +38,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration["Redis:ConnectionString"];
-});
+builder.Services.AddMemoryCache();
 
 
 builder.Services.AddHttpClient();
@@ -46,15 +48,14 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseCors();
 app.UseRateLimiter();
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();  // Azure handles HTTPS at the ingress level
 app.MapControllers();
 
 string location = string.Empty;

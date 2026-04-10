@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace server.Controllers
 {
@@ -12,15 +12,15 @@ namespace server.Controllers
     [Route("api/[controller]")]
     public class WeatherController(
         IConfiguration config,
-        IDistributedCache cache,
+        IMemoryCache cache,
         ILogger<WeatherController> logger,
         IHttpClientFactory httpClientFactory) : ControllerBase
     {
-        private readonly IDistributedCache _cache = cache;
+        private readonly IMemoryCache _cache = cache;
 
         private readonly ILogger _logger = logger;
 
-        private readonly DistributedCacheEntryOptions _cacheOptions = new()
+        private readonly MemoryCacheEntryOptions _cacheOptions = new()
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
         };
@@ -102,7 +102,7 @@ namespace server.Controllers
             var cachedUrl = $"{path}?{string.Join("&", cachedQueryParams)}";
 
             // Check the cache first
-            var cached = await _cache.GetStringAsync(cachedUrl);
+            var cached = _cache.Get<string>(cachedUrl);
             if (cached is not null)
             {
                 _logger.LogInformation("Cache HIT: {Key}", cachedUrl);
@@ -120,7 +120,7 @@ namespace server.Controllers
             var content = await response.Content.ReadAsStringAsync();
 
             // Store in cache for next time 
-            await _cache.SetStringAsync(cachedUrl, content, _cacheOptions);
+            _cache.Set(cachedUrl, content, _cacheOptions);
             return Content(content, "application/json");
         }
 
@@ -178,7 +178,7 @@ namespace server.Controllers
             var cachedUrl = $"{cachedPath}?{string.Join("&", queryParams)}";
 
             // Check cache before sending request to external API.
-            var cached = await _cache.GetStringAsync(cachedUrl);
+            var cached = _cache.Get<string>(cachedUrl);
             if (cached is not null)
             {
                 _logger.LogInformation("Cache HIT: {Key}", cachedUrl);
@@ -195,7 +195,7 @@ namespace server.Controllers
             var content = await response.Content.ReadAsStringAsync();
 
             // Store in cache for next time
-            await _cache.SetStringAsync(cachedUrl, content, _cacheOptions);
+            _cache.Set(cachedUrl, content, _cacheOptions);
             return Content(content, "application/json");
         }
 

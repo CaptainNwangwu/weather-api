@@ -1,4 +1,4 @@
-@server_HostAddress = http://localhost:5239
+@server_HostAddress = http://localhost:8080
 
 GET {{server_HostAddress}}/api/Weather?location=77450&date1=2001-02-12&elements=tempmax%2Ctempmin%2Ctemp%2Chumidity
 Accept: application/json

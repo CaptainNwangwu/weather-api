@@ -1,1 +1,1 @@
-export const API_BASE_URL = ''
+export const API_BASE_URL = 'https://weather-api-app.whitefield-3aaa90f0.eastus.azurecontainerapps.io'

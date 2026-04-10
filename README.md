@@ -3,10 +3,9 @@
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)
 ![Vue](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)
 ![Vuetify](https://img.shields.io/badge/Vuetify-4-1867C0?logo=vuetify)
-![Redis](https://img.shields.io/badge/Redis-caching-DC382D?logo=redis)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-A full-stack weather forecast application that wraps the [Visual Crossing Weather API](https://www.visualcrossing.com/). The backend is an ASP.NET Core 8.0 REST API with Redis caching and rate limiting; the frontend is a Vue 3 + Vuetify 4 SPA with support for single and multi-location queries.
+A full-stack weather forecast application that wraps the [Visual Crossing Weather API](https://www.visualcrossing.com/). The backend is an ASP.NET Core 8.0 REST API with in-memory caching and rate limiting; the frontend is a Vue 3 + Vuetify 4 SPA with support for single and multi-location queries.
 
 > Built as part of the [roadmap.sh](https://roadmap.sh/projects/weather-api-wrapper-service) Weather API Wrapper project.
 
@@ -23,13 +22,10 @@ cd weather-api
 cd server
 dotnet user-secrets set "VisualCrossing:ApiKey" "YOUR_KEY_HERE"
 
-# 3. Start Redis (Docker)
-docker run -d -p 6379:6379 redis:alpine
-
-# 4. Run the backend
+# 3. Run the backend
 dotnet run
 
-# 5. In a separate terminal, run the frontend
+# 4. In a separate terminal, run the frontend
 cd ../client
 npm install
 npm run dev
@@ -44,7 +40,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - **Single & multi-location forecasts** — look up weather for one place or compare several at once
 - **Flexible date ranges** — query current conditions, historical data, or future forecasts
 - **Granular field selection** — choose exactly which weather elements and data sections to include
-- **Redis caching** — responses cached for 30 minutes; identical queries are served instantly without hitting the upstream API
+- **In-memory caching** — responses cached for 30 minutes; identical queries are served instantly without hitting the upstream API
 - **Rate limiting** — fixed-window policy (10 requests / minute per IP) to protect against abuse
 - **Dark / light mode** — toggle between themes; sky-blue gradient in light mode, deep navy in dark mode
 - **Responsive UI** — expandable day panels, hourly breakdown table, and a raw JSON viewer
@@ -59,7 +55,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | --- | --- |
 | ASP.NET Core 8.0 | REST API framework |
 | `IHttpClientFactory` | Managed HTTP client for upstream requests |
-| `IDistributedCache` (Redis) | Response caching |
+| `IMemoryCache` | Response caching |
 | `System.Threading.RateLimiting` | Fixed-window rate limiter |
 | Swashbuckle | Swagger / OpenAPI docs |
 
@@ -77,7 +73,6 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Service | Purpose |
 | --- | --- |
 | [Visual Crossing](https://www.visualcrossing.com/) | Weather data source |
-| Redis | Distributed cache backend |
 
 ---
 
@@ -87,7 +82,6 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 18+](https://nodejs.org/)
-- [Redis](https://redis.io/) (or Docker)
 - A free [Visual Crossing API key](https://www.visualcrossing.com/sign-up)
 
 ### Configuration
@@ -97,16 +91,6 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ```bash
 cd server
 dotnet user-secrets set "VisualCrossing:ApiKey" "YOUR_KEY_HERE"
-```
-
-**Redis connection** (`server/appsettings.json`):
-
-```json
-{
-  "Redis": {
-    "ConnectionString": "localhost:6379"
-  }
-}
 ```
 
 ### Running in Development
@@ -181,9 +165,7 @@ weather-api/
 ├── server/
 │   ├── Controllers/
 │   │   └── WeatherController.cs   # Single + multi-location endpoints
-│   ├── Services/
-│   │   └── WeatherService.cs      # HTTP client + Redis cache logic
-│   ├── appsettings.json           # Redis connection string
+│   ├── appsettings.json           # App configuration
 │   └── Program.cs                 # Middleware pipeline + DI setup
 │
 └── client/
@@ -232,6 +214,9 @@ The Visual Crossing `icon` field drives all weather icons in the UI. If the user
 **Single vs multi response normalization**
 The multi-location endpoint returns `{ locations: { name: data } }` while the single endpoint returns the location data directly. `WeatherResults.vue` normalizes both shapes into a flat array before rendering, keeping the template logic uniform.
 
+**`IMemoryCache` over Redis**
+This is a single-instance app with no load balancer, so a distributed cache adds operational overhead (running a Redis server, managing connection strings) with no real benefit. `IMemoryCache` is zero-cost, zero-config, and sufficient — cache is lost on restart, but rebuilt on first request, which is acceptable. If the app ever scales to multiple instances, the `IMemoryCache` calls can be swapped for `IDistributedCache` with no controller changes needed.
+
 ---
 
 ## What I Learned
@@ -240,7 +225,7 @@ The multi-location endpoint returns `{ locations: { name: data } }` while the si
 - **ASP.NET Core endpoint routing and CORS** — `AddDefaultPolicy` + `UseCors()` is not sufficient for controller endpoints in .NET 5+; you must also call `RequireCors()` or use `[EnableCors]`. The Vite proxy made this moot in dev.
 - **Rate limiting in ASP.NET Core** — `System.Threading.RateLimiting` (added in .NET 7) provides built-in fixed-window, sliding-window, token-bucket, and concurrency limiters. Policies are registered in DI via `AddRateLimiter`, applied globally with `UseRateLimiter`, and can be scoped per-endpoint or globally via `options.GlobalLimiter`.
 - **Vuetify 4 component registration** — components must be explicitly imported (`* as components from 'vuetify/components'`) and passed to `createVuetify()`, unlike Vuetify 2/3 which supported auto-registration via a separate plugin.
-- **Redis `IDistributedCache`** — stores serialized JSON strings; cache keys need to be deterministic and exclude secrets like API keys.
+- **`IMemoryCache` vs `IDistributedCache`** — .NET's in-process memory cache is zero-config and sufficient for single-instance deployments. `IDistributedCache` (e.g. Redis) is warranted when you need cache sharing across multiple app instances or persistence across restarts. Both share a similar API, so migrating later is straightforward.
 
 ---
 
