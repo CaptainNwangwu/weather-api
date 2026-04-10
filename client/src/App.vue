@@ -13,18 +13,18 @@
             Powered by Visual Crossing
           </p>
         </div>
-        <v-tooltip :text="isDark ? 'Switch to light mode' : 'Switch to dark mode'" location="left">
-          <template #activator="{ props: tip }">
-            <v-btn
-              v-bind="tip"
-              :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-              variant="text"
-              color="white"
-              size="large"
-              @click="toggleDark"
-            />
-          </template>
-        </v-tooltip>
+        <div class="d-flex align-center ga-1">
+          <v-icon icon="mdi-weather-sunny" color="white" size="18" />
+          <v-switch
+            :model-value="isDark"
+            @update:model-value="val => theme.change(val ? 'dark' : 'light')"
+            color="blue-lighten-2"
+            hide-details
+            inset
+            density="compact"
+          />
+          <v-icon icon="mdi-weather-night" color="white" size="18" />
+        </div>
       </div>
 
       <!-- Main Card -->
@@ -50,12 +50,12 @@
 
                 <v-text-field
                   v-model="single.location"
+                  class="mt-4 mb-3"
                   label="Location *"
                   hint="City, address, ZIP code, or lat,long"
                   placeholder="e.g. Phoenix,USA or 33.4484,-112.0742"
                   prepend-inner-icon="mdi-map-search"
                   variant="outlined"
-                  class="mb-3"
                   required
                 />
 
@@ -128,7 +128,7 @@
 
                 <v-btn
                   type="submit"
-                  color="blue-darken-1"
+                  :color="isDark ? 'blue-lighten-2' : 'blue-darken-2'"
                   size="large"
                   block
                   rounded="lg"
@@ -147,12 +147,12 @@
 
                 <v-text-field
                   v-model="multi.locations"
+                  class="mt-4 mb-3"
                   label="Locations *"
-                  hint="Separate multiple locations with a pipe | symbol"
+                  hint="Separate multiple locations with a pipe `|` symbol"
                   placeholder="e.g. Phoenix,USA|London,UK|Hamburg,Germany"
                   prepend-inner-icon="mdi-map-marker-multiple"
                   variant="outlined"
-                  class="mb-3"
                   required
                 />
 
@@ -225,7 +225,7 @@
 
                 <v-btn
                   type="submit"
-                  color="blue-darken-1"
+                  :color="isDark ? 'blue-lighten-2' : 'blue-darken-2'"
                   size="large"
                   block
                   rounded="lg"
@@ -246,7 +246,8 @@
       <v-expand-transition>
         <WeatherResults
           v-if="results"
-          :raw-data="results"
+          :raw-data="results.data"
+          :cached="results.cached"
           class="mt-6"
           @close="results = null"
         />
@@ -257,6 +258,8 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+
+const ALWAYS_INCLUDE = ['icon', 'temp', 'tempmax', 'tempmin', 'conditions', 'description']
 import { useTheme } from 'vuetify'
 import { API_BASE_URL } from './config.js'
 import WeatherResults from './components/WeatherResults.vue'
@@ -269,7 +272,10 @@ function toggleDark() {
 
 const bgStyle = computed(() =>
   isDark.value
-    ? 'background: linear-gradient(160deg, #0d1b2a 0%, #1a2d44 50%, #1e3a5a 100%); min-height: 100vh'
+    ? `background:
+        radial-gradient(ellipse 130% 55% at 50% -5%, rgba(30, 70, 150, 0.32) 0%, transparent 100%),
+        linear-gradient(180deg, #060d1a 0%, #080e1e 55%, #050b16 100%);
+       min-height: 100vh`
     : 'background: linear-gradient(160deg, #87CEEB 0%, #B8E4F9 50%, #E0F6FF 100%); min-height: 100vh'
 )
 
@@ -336,7 +342,7 @@ async function fetchSingle() {
     if (single.date2 && single.date1) params.append('date2', single.date2)
     if (single.include.length) params.append('include', single.include.join(','))
     if (single.elements.length) {
-      const elems = single.elements.includes('icon') ? single.elements : [...single.elements, 'icon']
+      const elems = [...new Set([...single.elements, ...ALWAYS_INCLUDE])]
       params.append('elements', elems.join(','))
     }
 
@@ -345,7 +351,7 @@ async function fetchSingle() {
       const data = await response.json().catch(() => ({}))
       throw new Error(data.error || `Request failed (${response.status})`)
     }
-    results.value = await response.json()
+    results.value = { data: await response.json(), cached: response.headers.get('X-Cache-Status') === 'HIT' }
   } catch (e) {
     singleError.value = e.message || 'An unexpected error occurred'
   } finally {
@@ -365,7 +371,7 @@ async function fetchMulti() {
     if (multi.dateend && multi.datestart) params.append('dateend', multi.dateend)
     if (multi.include.length) params.append('include', multi.include.join(','))
     if (multi.elements.length) {
-      const elems = multi.elements.includes('icon') ? multi.elements : [...multi.elements, 'icon']
+      const elems = [...new Set([...multi.elements, ...ALWAYS_INCLUDE])]
       params.append('elements', elems.join(','))
     }
 
@@ -374,7 +380,7 @@ async function fetchMulti() {
       const data = await response.json().catch(() => ({}))
       throw new Error(data.error || `Request failed (${response.status})`)
     }
-    results.value = await response.json()
+    results.value = { data: await response.json(), cached: response.headers.get('X-Cache-Status') === 'HIT' }
   } catch (e) {
     multiError.value = e.message || 'An unexpected error occurred'
   } finally {

@@ -6,15 +6,21 @@
       <!-- Location Header -->
       <v-card-title :class="['d-flex', 'align-start', 'justify-space-between', 'pa-5', isDark ? 'bg-blue-darken-3 text-white' : 'bg-blue-lighten-4']">
         <div>
-          <div class="text-h6 font-weight-bold">
-            <v-icon start icon="mdi-map-marker" color="blue-darken-2" />
+          <div class="text-h6 font-weight-bold d-flex align-center ga-2">
+            <v-icon start icon="mdi-map-marker" :color="isDark ? 'blue-lighten-3' : 'blue-darken-2'" />
             {{ loc.resolvedAddress || loc.address || loc._name }}
+            <img
+              v-if="countryFlag(loc.resolvedAddress)"
+              :src="countryFlag(loc.resolvedAddress)"
+              style="height: 18px; border: 2px solid white; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); flex-shrink: 0"
+              aria-hidden="true"
+            />
           </div>
           <div class="d-flex flex-wrap ga-2 mt-2">
             <v-tooltip v-if="loc.latitude != null" text="Coordinates" location="bottom">
               <template #activator="{ props: tip }">
                 <v-chip v-bind="tip" size="small" prepend-icon="mdi-earth" variant="outlined"
-                  :color="isDark ? 'blue-lighten-2' : 'blue-darken-2'">
+                  :color="isDark ? 'blue-lighten-4' : 'blue-darken-2'">
                   {{ round(loc.latitude) }}, {{ round(loc.longitude) }}
                 </v-chip>
               </template>
@@ -22,12 +28,19 @@
             <v-tooltip v-if="loc.timezone" text="Timezone" location="bottom">
               <template #activator="{ props: tip }">
                 <v-chip v-bind="tip" size="small" prepend-icon="mdi-clock-outline" variant="outlined"
-                  :color="isDark ? 'blue-lighten-2' : 'blue-darken-2'">
+                  :color="isDark ? 'blue-lighten-4' : 'blue-darken-2'">
                   {{ loc.timezone }}
                 </v-chip>
               </template>
             </v-tooltip>
-            <v-tooltip v-if="loc.queryCost" text="API records consumed by this query" location="bottom">
+            <v-tooltip v-if="cached" text="Served from cache — 0 API records consumed" location="bottom">
+              <template #activator="{ props: tip }">
+                <v-chip v-bind="tip" size="small" prepend-icon="mdi-cached" variant="outlined" color="success">
+                  Cached
+                </v-chip>
+              </template>
+            </v-tooltip>
+            <v-tooltip v-else-if="loc.queryCost" text="API records consumed by this query" location="bottom">
               <template #activator="{ props: tip }">
                 <v-chip v-bind="tip" size="small" prepend-icon="mdi-database-outline" variant="outlined"
                   :color="isDark ? 'grey-lighten-2' : 'grey-darken-1'">
@@ -37,7 +50,7 @@
             </v-tooltip>
           </div>
         </div>
-        <v-btn v-if="i === 0" icon="mdi-close" variant="text" density="compact" @click="$emit('close')" />
+        <v-btn v-if="i === 0" icon="mdi-close" variant="text" density="compact" color="white" @click="$emit('close')" />
       </v-card-title>
 
       <!-- Current Conditions -->
@@ -200,7 +213,8 @@ import { ref, computed, watch } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
-  rawData: { type: Object, required: true }
+  rawData: { type: Object, required: true },
+  cached: { type: Boolean, default: false }
 })
 
 defineEmits(['close'])
@@ -254,6 +268,38 @@ const VC_ICONS = {
 
 function vcIcon(name) {
   return VC_ICONS[name] ?? 'mdi-weather-cloudy'
+}
+
+// ── Country flags ─────────────────────────────────────────────
+
+const COUNTRY_CODES = {
+  'United States': 'us', 'United Kingdom': 'gb', 'Germany': 'de', 'France': 'fr',
+  'Japan': 'jp', 'China': 'cn', 'India': 'in', 'Brazil': 'br', 'Canada': 'ca',
+  'Australia': 'au', 'Nigeria': 'ng', 'Mexico': 'mx', 'Italy': 'it', 'Spain': 'es',
+  'South Korea': 'kr', 'Russia': 'ru', 'Netherlands': 'nl', 'Switzerland': 'ch',
+  'Sweden': 'se', 'Norway': 'no', 'Denmark': 'dk', 'Finland': 'fi', 'Poland': 'pl',
+  'Portugal': 'pt', 'Argentina': 'ar', 'Chile': 'cl', 'Colombia': 'co',
+  'South Africa': 'za', 'Egypt': 'eg', 'Kenya': 'ke', 'Ghana': 'gh', 'Ethiopia': 'et',
+  'Morocco': 'ma', 'Turkey': 'tr', 'Saudi Arabia': 'sa', 'United Arab Emirates': 'ae',
+  'Israel': 'il', 'Pakistan': 'pk', 'Bangladesh': 'bd', 'Indonesia': 'id',
+  'Malaysia': 'my', 'Thailand': 'th', 'Vietnam': 'vn', 'Philippines': 'ph',
+  'Singapore': 'sg', 'New Zealand': 'nz', 'Ireland': 'ie', 'Belgium': 'be',
+  'Austria': 'at', 'Czechia': 'cz', 'Czech Republic': 'cz', 'Hungary': 'hu',
+  'Romania': 'ro', 'Greece': 'gr', 'Ukraine': 'ua', 'Peru': 'pe', 'Ecuador': 'ec',
+  'Bolivia': 'bo', 'Paraguay': 'py', 'Uruguay': 'uy', 'Venezuela': 've', 'Cuba': 'cu',
+  'Iraq': 'iq', 'Jordan': 'jo', 'Lebanon': 'lb', 'Kuwait': 'kw', 'Qatar': 'qa',
+  'Afghanistan': 'af', 'Kazakhstan': 'kz', 'Myanmar': 'mm', 'Sri Lanka': 'lk',
+  'Nepal': 'np', 'Taiwan': 'tw', 'Algeria': 'dz', 'Tunisia': 'tn', 'Sudan': 'sd',
+  'Senegal': 'sn', 'Cameroon': 'cm', 'Angola': 'ao', 'Zimbabwe': 'zw', 'Uganda': 'ug',
+  'Tanzania': 'tz', 'Zambia': 'zm', 'Democratic Republic of the Congo': 'cd',
+  'Honduras': 'hn', 'Guatemala': 'gt', 'Panama': 'pa', 'Costa Rica': 'cr',
+}
+
+function countryFlag(resolvedAddress) {
+  if (!resolvedAddress) return null
+  const country = resolvedAddress.split(',').map(s => s.trim()).at(-1) ?? ''
+  const code = COUNTRY_CODES[country]
+  return code ? `https://flagcdn.com/24x18/${code}.png` : null
 }
 
 // ── Helpers ───────────────────────────────────────────────────

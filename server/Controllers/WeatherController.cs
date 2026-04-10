@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace server.Controllers
@@ -35,6 +32,14 @@ namespace server.Controllers
 
         private readonly string _unitGroup = config["WeatherApi:UnitGroup"]
             ?? throw new InvalidOperationException("WeatherApi:UnitGroup not configured");
+
+        /// <summary>
+        /// The function sorts comma-separated values in a string to ensure that parameter order does
+        /// not affect cache keys.
+        /// </summary>
+        /// <param name="param">String of comma separated values originating from endpoint query parameters</param>
+        private static string SortParam(string param) =>
+            string.Join(",", param.Split(',').Select(v => v.Trim()).Order());
 
         private IActionResult HandleExternalApiError(HttpResponseMessage response)
         {
@@ -90,10 +95,10 @@ namespace server.Controllers
 
 
             if (include is not null)
-                queryParams.Add($"include={include}");
+                queryParams.Add($"include={SortParam(include)}");
 
             if (elements is not null)
-                queryParams.Add($"elements={elements}");
+                queryParams.Add($"elements={SortParam(elements)}");
 
             var requestUrl = $"{path}?{string.Join("&", queryParams)}";
 
@@ -106,6 +111,7 @@ namespace server.Controllers
             if (cached is not null)
             {
                 _logger.LogInformation("Cache HIT: {Key}", cachedUrl);
+                Response.Headers["X-Cache-Status"] = "HIT";
                 return Content(cached, "application/json");
             }
             // On Cache miss - Check External API.
@@ -121,6 +127,7 @@ namespace server.Controllers
 
             // Store in cache for next time
             _cache.Set(cachedUrl, content, _cacheOptions);
+            Response.Headers["X-Cache-Status"] = "MISS";
             return Content(content, "application/json");
         }
 
@@ -139,6 +146,7 @@ namespace server.Controllers
         /// Fowards the external API's status code on failure.
         /// </returns>
         [HttpGet("multi")]
+        [EnableRateLimiting("multi")]
         public async Task<IActionResult> GetMultiLocationForecast(
             [FromQuery] string locations,
             [FromQuery] string? datestart = null,
@@ -146,8 +154,9 @@ namespace server.Controllers
             [FromQuery] string? include = null,
             [FromQuery] string? elements = null)
         {
-            // Uri encode all locations
-            var encodedLocations = Uri.EscapeDataString(locations);
+            // Sort locations so Phoenix|London and London|Phoenix share the same cache entry
+            var sortedLocations = string.Join("|", locations.Split('|').Select(l => l.Trim()).Order());
+            var encodedLocations = Uri.EscapeDataString(sortedLocations);
 
             // Build query params — All members are treated as query parameters.
             var queryParams = new List<string>
@@ -165,10 +174,10 @@ namespace server.Controllers
                 queryParams.Add($"dateend={dateend}");
 
             if (include is not null)
-                queryParams.Add($"include={include}");
+                queryParams.Add($"include={SortParam(include)}");
 
             if (elements is not null)
-                queryParams.Add($"elements={elements}");
+                queryParams.Add($"elements={SortParam(elements)}");
 
             var requestUrl = $"{_multiURL}?{string.Join("&", queryParams)}";
 
@@ -183,6 +192,7 @@ namespace server.Controllers
             if (cached is not null)
             {
                 _logger.LogInformation("Cache HIT: {Key}", cachedUrl);
+                Response.Headers["X-Cache-Status"] = "HIT";
                 return Content(cached, "application/json");
             }
             // On Cache Miss - Check external API
@@ -197,6 +207,7 @@ namespace server.Controllers
 
             // Store in cache for next time
             _cache.Set(cachedUrl, content, _cacheOptions);
+            Response.Headers["X-Cache-Status"] = "MISS";
             return Content(content, "application/json");
         }
 

@@ -1,10 +1,28 @@
-server/bin/Debug/net8.0/server.dll
-server/bin/Debug/net8.0/server.dll
-server/bin/Debug/net8.0/server.pdb
-server/obj/Debug/net8.0/server.AssemblyInfo.cs
-server/obj/Debug/net8.0/server.AssemblyInfoInputs.cache
-server/obj/Debug/net8.0/server.dll
-server/obj/Debug/net8.0/server.pdb
-server/obj/Debug/net8.0/server.sourcelink.json
-server/obj/Debug/net8.0/ref/server.dll
-server/obj/Debug/net8.0/refint/server.dll
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+
+# .NET secrets
+appsettings.Development.json
+
+# Node
+node_modules/
+dist/
+.cache/
+
+# Vite
+client/.env.local
+client/.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp

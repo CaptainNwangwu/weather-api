@@ -9,7 +9,9 @@ import App from './App.vue'
 const vuetify = createVuetify({
   components,
   directives,
-  theme: { defaultTheme: 'light' }
+  theme: {
+    defaultTheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
 })
 const app = createApp(App)
 app.use(vuetify)

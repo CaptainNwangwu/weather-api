@@ -1,5 +1,5 @@
 # Use the official .NET 8.0 SDK image to build the app
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy the project file and restore dependencies
@@ -13,7 +13,7 @@ COPY . ./
 RUN dotnet publish -c Release -o /app/publish
 
 # Use the official .NET 8.0 runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # Copy the published app from the build stage
